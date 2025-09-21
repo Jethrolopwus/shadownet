@@ -1,6 +1,9 @@
-/// ShadowNet - Privacy-preserving Bitcoin receipts system
-/// Built on Starknet with Cairo contracts
+use starknet::{
+    ContractAddress, get_caller_address,
+    storage::{StoragePointerReadAccess, StoragePointerWriteAccess}
+};
 
+/// ShadowNet Receipt Contract
 #[starknet::contract]
 pub mod ShadowNetReceipt {
     use starknet::{
@@ -11,6 +14,12 @@ pub mod ShadowNetReceipt {
     #[storage]
     struct Storage {
         receipt_counter: felt252,
+        payer_hashes: Map<felt252, felt252>,
+        payee_hashes: Map<felt252, felt252>,
+        amounts: Map<felt252, felt252>,
+        timestamps: Map<felt252, felt252>,
+        proof_hashes: Map<felt252, felt252>,
+        verified: Map<felt252, felt252>,
         admin: ContractAddress,
     }
 
@@ -61,6 +70,14 @@ pub mod ShadowNetReceipt {
         let current_id = self.receipt_counter.read();
         let new_id = current_id + 1;
         
+        // Store receipt data
+        self.payer_hashes.write(new_id, payer_hash);
+        self.payee_hashes.write(new_id, payee_hash);
+        self.amounts.write(new_id, amount_sats);
+        self.timestamps.write(new_id, timestamp);
+        self.proof_hashes.write(new_id, proof_hash);
+        self.verified.write(new_id, 0); // 0 = pending
+        
         // Update counter
         self.receipt_counter.write(new_id);
         
@@ -76,17 +93,59 @@ pub mod ShadowNetReceipt {
     /// Verify a receipt (simplified - just marks as verified)
     #[external(v0)]
     fn verify_receipt(ref self: ContractState, receipt_id: felt252) {
-        // For now, just emit event (basic implementation)
+        // Check if receipt exists
+        let payer_hash = self.payer_hashes.read(receipt_id);
+        assert(payer_hash != 0, 'Receipt does not exist');
+        
+        // Check if already verified
+        let is_verified = self.verified.read(receipt_id);
+        assert(is_verified == 0, 'Receipt already verified');
+        
+        // Mark as verified
+        self.verified.write(receipt_id, 1);
+        
+        // Emit event
         self.emit(ReceiptVerified {
             receipt_id,
             verifier: get_caller_address(),
         });
     }
 
+    /// Get receipt details
+    #[external(v0)]
+    fn get_receipt(self: @ContractState, receipt_id: felt252) -> (
+        payer_hash: felt252,
+        payee_hash: felt252,
+        amount_sats: felt252,
+        timestamp: felt252,
+        verified: felt252
+    ) {
+        let payer_hash = self.payer_hashes.read(receipt_id);
+        assert(payer_hash != 0, 'Receipt does not exist');
+        
+        (
+            payer_hash,
+            self.payee_hashes.read(receipt_id),
+            self.amounts.read(receipt_id),
+            self.timestamps.read(receipt_id),
+            self.verified.read(receipt_id)
+        )
+    }
+
     /// Get total number of receipts
     #[external(v0)]
     fn get_receipt_count(self: @ContractState) -> felt252 {
         self.receipt_counter.read()
+    }
+
+    /// Check if a receipt is verified
+    #[external(v0)]
+    fn is_receipt_verified(self: @ContractState, receipt_id: felt252) -> felt252 {
+        let payer_hash = self.payer_hashes.read(receipt_id);
+        if payer_hash == 0 {
+            return 0; // Receipt doesn't exist
+        };
+        self.verified.read(receipt_id)
     }
 
     /// Admin function to update admin
