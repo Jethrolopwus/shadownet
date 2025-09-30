@@ -1,7 +1,5 @@
 use super::interfaces::IZKVerifier;
 
-/// Mock ZK Verifier for testing purposes
-/// In production, this would be replaced with a real ZK verifier contract
 #[starknet::contract]
 pub mod MockZKVerifier {
     use super::IZKVerifier;
@@ -12,7 +10,7 @@ pub mod MockZKVerifier {
     #[storage]
     struct Storage {
         verification_count: felt252,
-        valid_proofs: Map<felt252, felt252>, // proof_hash -> validity
+        valid_proofs: Map<felt252, felt252>, 
     }
 
     #[event]

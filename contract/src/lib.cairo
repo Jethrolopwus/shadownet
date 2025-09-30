@@ -1,5 +1,3 @@
-/// ShadowNet - Privacy-preserving Bitcoin receipts system
-/// Built on Starknet with Cairo contracts
 
 #[starknet::contract]
 pub mod ShadowNetReceipt {
@@ -41,7 +39,6 @@ pub mod ShadowNetReceipt {
         self.admin.write(get_caller_address());
     }
 
-    /// Submit a receipt with BTC transaction details
     #[external(v0)]
     fn submit_receipt(
         ref self: ContractState,
@@ -51,20 +48,17 @@ pub mod ShadowNetReceipt {
         timestamp: felt252,
         proof_hash: felt252
     ) {
-        // Basic validation
+      
         assert(payer_hash != 0, 'Invalid payer hash');
         assert(payee_hash != 0, 'Invalid payee hash');
         assert(amount_sats != 0, 'Invalid amount');
         assert(proof_hash != 0, 'Invalid proof hash');
         
-        // Get next receipt ID
         let current_id = self.receipt_counter.read();
         let new_id = current_id + 1;
         
-        // Update counter
         self.receipt_counter.write(new_id);
         
-        // Emit event
         self.emit(ReceiptSubmitted {
             receipt_id: new_id,
             payer_hash,
@@ -73,23 +67,19 @@ pub mod ShadowNetReceipt {
         });
     }
 
-    /// Verify a receipt (simplified - just marks as verified)
     #[external(v0)]
     fn verify_receipt(ref self: ContractState, receipt_id: felt252) {
-        // For now, just emit event (basic implementation)
         self.emit(ReceiptVerified {
             receipt_id,
             verifier: get_caller_address(),
         });
     }
 
-    /// Get total number of receipts
     #[external(v0)]
     fn get_receipt_count(self: @ContractState) -> felt252 {
         self.receipt_counter.read()
     }
 
-    /// Admin function to update admin
     #[external(v0)]
     fn update_admin(ref self: ContractState, new_admin: ContractAddress) {
         let current_admin = self.admin.read();

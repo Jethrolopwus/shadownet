@@ -4,8 +4,6 @@ use starknet::{
 };
 use super::interfaces::{IShadowNetVerifier, IZKVerifier};
 
-/// ShadowNet Verifier Contract
-/// Handles ZK proof verification for ShadowNet receipts
 #[starknet::contract]
 pub mod ShadowNetVerifier {
     use super::{IShadowNetVerifier, IZKVerifier};
@@ -58,18 +56,15 @@ pub mod ShadowNetVerifier {
     #[abi(embed_v0)]
     impl ShadowNetVerifierImpl of IShadowNetVerifier<ContractState> {
         fn verify_proof(ref self: ContractState, proof: felt252, public_inputs: felt252) -> felt252 {
-            // Get ZK verifier contract
+         
             let zk_verifier = self.zk_verifier.read();
-            
-            // Call ZK verifier
+         
             let dispatcher = IZKVerifierDispatcher { contract_address: zk_verifier };
             let is_valid = dispatcher.verify(proof, public_inputs);
             
-            // Increment verification count
             let current_count = self.verification_count.read();
             self.verification_count.write(current_count + 1);
             
-            // Emit event
             self.emit(ProofVerified {
                 proof_hash: proof,
                 verifier: get_caller_address(),
@@ -84,7 +79,6 @@ pub mod ShadowNetVerifier {
         }
     }
 
-    /// Admin functions
     #[generate_trait]
     pub impl AdminImpl of AdminTrait {
         fn update_admin(ref self: ContractState, new_admin: ContractAddress) {

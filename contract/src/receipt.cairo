@@ -5,8 +5,6 @@ use starknet::{
 use super::interfaces::{IShadowNetReceipt, IZKVerifier};
 use super::types::{ReceiptData, create_receipt_data, validate_receipt_data, RECEIPT_PENDING, RECEIPT_VERIFIED, ERROR_INVALID_RECEIPT_ID, ERROR_RECEIPT_ALREADY_VERIFIED, ERROR_INVALID_PROOF, ERROR_INVALID_AMOUNT};
 
-/// ShadowNet Receipt Contract
-/// Handles BTC payment receipt submission, verification, and management
 #[starknet::contract]
 pub mod ShadowNetReceipt {
     use super::{
@@ -81,21 +79,17 @@ pub mod ShadowNetReceipt {
             timestamp: felt252,
             proof_hash: felt252
         ) {
-            // Validate receipt data
+          
             assert(validate_receipt_data(payer_hash, payee_hash, amount_sats, timestamp, proof_hash), ERROR_INVALID_AMOUNT);
             
-            // Get next receipt ID
             let current_id = self.receipt_counter.read();
             let new_id = current_id + 1;
             
-            // Create receipt data
             let receipt_data = create_receipt_data(payer_hash, payee_hash, amount_sats, timestamp, proof_hash);
             
-            // Store receipt
             self.receipts.write(new_id, receipt_data);
             self.receipt_counter.write(new_id);
-            
-            // Emit event
+        
             self.emit(ReceiptSubmitted {
                 receipt_id: new_id,
                 payer_hash,
@@ -106,30 +100,23 @@ pub mod ShadowNetReceipt {
         }
 
         fn verify_receipt(ref self: ContractState, receipt_id: felt252, proof: felt252) {
-            // Check if receipt exists
             let receipt = self.receipts.read(receipt_id);
             assert(receipt.payer_btc_address != 0, ERROR_INVALID_RECEIPT_ID);
             
-            // Check if already verified
             assert(receipt.verified != RECEIPT_VERIFIED, ERROR_RECEIPT_ALREADY_VERIFIED);
             
-            // Get verifier contract
             let verifier_contract = self.verifier_contract.read();
             
-            // Call ZK verifier
             let dispatcher = IZKVerifierDispatcher { contract_address: verifier_contract };
             let public_inputs = receipt.proof_hash;
             let is_valid = dispatcher.verify(proof, public_inputs);
             
-            // Verify proof is valid
             assert(is_valid == 1, ERROR_INVALID_PROOF);
             
-            // Update receipt as verified
             let mut updated_receipt = receipt;
             updated_receipt.verified = RECEIPT_VERIFIED;
             self.receipts.write(receipt_id, updated_receipt);
             
-            // Emit event
             self.emit(ReceiptVerified {
                 receipt_id,
                 verifier: get_caller_address(),
@@ -162,13 +149,12 @@ pub mod ShadowNetReceipt {
         fn is_receipt_verified(self: @ContractState, receipt_id: felt252) -> felt252 {
             let receipt = self.receipts.read(receipt_id);
             if receipt.payer_btc_address == 0 {
-                return 0; // Receipt doesn't exist
+                return 0; 
             };
             receipt.verified
         }
     }
-
-    /// Admin functions
+s
     #[generate_trait]
     pub impl AdminImpl of AdminTrait {
         fn update_admin(ref self: ContractState, new_admin: ContractAddress) {
