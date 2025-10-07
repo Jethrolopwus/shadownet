@@ -9,6 +9,7 @@ import { transferStx } from "@/lib/stx";
 import { changeWalletNetwork, getWalletNetwork } from "@/lib/network";
 import { subscribeWalletEvents } from "@/lib/wallet";
 import { getEnvNetworks } from "@/lib/config";
+import { ReceiptMinting, ReceiptHistory } from "./ReceiptMinting";
 
 export function WalletPanel() {
 	const { connected, connect, disconnect } = useXverse();
@@ -16,6 +17,8 @@ export function WalletPanel() {
 	const [stxAccounts, setStxAccounts] = useState<any[]>([]);
 	const [networkInfo, setNetworkInfo] = useState<any | null>(null);
 	const [busy, setBusy] = useState(false);
+	const [activeMinting, setActiveMinting] = useState<string | null>(null);
+	const [receipts, setReceipts] = useState<any[]>([]);
 
 	useEffect(() => {
 		let dispose: (() => void) | undefined;
@@ -53,6 +56,20 @@ export function WalletPanel() {
 			""
 		);
 	}
+
+	const handleMintingComplete = (receipt: any) => {
+		setReceipts(prev => [receipt, ...prev]);
+		setActiveMinting(null);
+	};
+
+	const simulateReceiptMinting = () => {
+		const mockInvoiceId = `INV-${Date.now()}`;
+		const mockAmount = Math.floor(Math.random() * 100000000); // Random amount in sats
+		const mockTxHash = `mock_tx_${Math.random().toString(36).substring(2, 15)}`;
+		
+		setActiveMinting(mockInvoiceId);
+		// The ReceiptMinting component will handle the simulation
+	};
 
 	return (
 		<div className="space-y-6 p-6 border rounded-xl bg-white shadow-sm">
@@ -169,6 +186,12 @@ export function WalletPanel() {
 				>
 					Change Network
 				</button>
+				<button
+					onClick={simulateReceiptMinting}
+					className="px-3 py-2 border rounded hover:bg-gray-50 bg-blue-50 text-blue-700 border-blue-200"
+				>
+					Simulate Receipt Minting
+				</button>
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,6 +237,25 @@ export function WalletPanel() {
 					)}
 				</div>
 			</div>
+
+			{/* Active Receipt Minting */}
+			{activeMinting && (
+				<div className="mt-6">
+					<ReceiptMinting
+						invoiceId={activeMinting}
+						amount={Math.floor(Math.random() * 100000000)}
+						btcTxHash={`mock_tx_${Math.random().toString(36).substring(2, 15)}`}
+						onMintingComplete={handleMintingComplete}
+					/>
+				</div>
+			)}
+
+			{/* Receipt History */}
+			{receipts.length > 0 && (
+				<div className="mt-8">
+					<ReceiptHistory receipts={receipts} />
+				</div>
+			)}
 		</div>
 	);
 }
