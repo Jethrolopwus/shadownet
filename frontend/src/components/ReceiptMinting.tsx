@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 interface ReceiptNFT {
   id: string;
   invoiceId: string;
-  amount: number; // in sats
+  amount: number; 
   btcTxHash: string;
   blockHeight: number;
   timestamp: string;
@@ -13,6 +13,7 @@ interface ReceiptNFT {
   contractAddress?: string;
   tokenId?: string;
   zkProofId?: string;
+  zkProofHash?: string;
 }
 
 interface ReceiptMintingProps {
@@ -37,7 +38,6 @@ export function ReceiptMinting({ invoiceId, amount, btcTxHash, onMintingComplete
   const [currentStep, setCurrentStep] = useState('');
 
   useEffect(() => {
-    // Simulate the minting process
     const steps = [
       'Confirming BTC transaction...',
       'Generating zkProof...',
@@ -47,22 +47,60 @@ export function ReceiptMinting({ invoiceId, amount, btcTxHash, onMintingComplete
     ];
 
     let stepIndex = 0;
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       if (stepIndex < steps.length) {
         setCurrentStep(steps[stepIndex]);
         setMintingProgress((stepIndex + 1) * 20);
+        if (steps[stepIndex] === 'Generating zkProof...') {
+          try {
+            const res = await fetch('/api/proofs/generate', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify({ invoiceId, paymentRef: btcTxHash, amount }),
+            }).then(r => r.json());
+            if (res?.proofId) {
+              setReceipt(prev => ({ ...prev, zkProofId: res.proofId, zkProofHash: res.proofHash }));
+            }
+          } catch {}
+        }
         stepIndex++;
       } else {
-        // Minting complete
-        const completedReceipt: ReceiptNFT = {
-          ...receipt,
-          status: 'minted',
-          contractAddress: '0x1234...5678', // Mock contract address
-          tokenId: `#${Math.floor(Math.random() * 10000)}`,
-          zkProofId: `proof_${Math.random().toString(36).substring(2, 15)}`
-        };
-        setReceipt(completedReceipt);
-        onMintingComplete?.(completedReceipt);
+        // Call server to mint receipt (mock server-side)
+        try {
+          const res = await fetch('/api/receipts/mint', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              invoiceId,
+              amountSats: amount,
+              paymentRef: btcTxHash,
+              proofId: receipt.zkProofId || `proof_${Math.random().toString(36).slice(2)}`,
+              proofHash: receipt.zkProofHash || `0x${Math.random().toString(16).slice(2, 10)}`,
+              payerHash: '0x0',
+              payeeHash: '0x0',
+              metadataURI: ''
+            })
+          }).then(r => r.json());
+
+          const tokenLabel = res?.tokenId != null ? `#${res.tokenId}` : `#${Math.floor(Math.random() * 10000)}`;
+          const completedReceipt: ReceiptNFT = {
+            ...receipt,
+            status: 'minted',
+            contractAddress: '0x1234...5678',
+            tokenId: tokenLabel,
+          };
+          setReceipt(completedReceipt);
+          onMintingComplete?.(completedReceipt);
+        } catch {
+          const completedReceipt: ReceiptNFT = {
+            ...receipt,
+            status: 'minted',
+            contractAddress: '0x1234...5678', 
+            tokenId: `#${Math.floor(Math.random() * 10000)}`,
+          };
+          setReceipt(completedReceipt);
+          onMintingComplete?.(completedReceipt);
+        }
         clearInterval(interval);
       }
     }, 2000);
@@ -144,9 +182,17 @@ export function ReceiptMinting({ invoiceId, amount, btcTxHash, onMintingComplete
             <div>
               <span className="font-medium text-gray-600">zkProof ID:</span>
               <div className="font-mono text-xs break-all bg-green-100 p-2 rounded mt-1">
-                {receipt.zkProofId}
+                {receipt.zkProofId || 'pending'}
               </div>
             </div>
+            {receipt.zkProofHash && (
+              <div>
+                <span className="font-medium text-gray-600">zkProof Hash:</span>
+                <div className="font-mono text-xs break-all bg-green-50 p-2 rounded mt-1">
+                  {receipt.zkProofHash}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -169,7 +215,7 @@ export function ReceiptMinting({ invoiceId, amount, btcTxHash, onMintingComplete
   );
 }
 
-// Standalone component for showing receipt history
+
 export function ReceiptHistory({ receipts }: { receipts: ReceiptNFT[] }) {
   const formatAmount = (sats: number) => {
     return (sats / 100000000).toFixed(8);

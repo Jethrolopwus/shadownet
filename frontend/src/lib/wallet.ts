@@ -16,7 +16,7 @@ export async function getXverseOrThrow() {
 }
 
 export function getXverseProviderId(): string {
-	// Fallback provider id used by sats-connect for Xverse
+
 	return "xverse";
 }
 

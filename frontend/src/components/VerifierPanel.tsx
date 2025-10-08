@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ShadowNetContract, getProvider } from "@/lib/starknet";
 
 interface VerificationResult {
   id: string;
@@ -47,8 +48,8 @@ export function VerifierPanel() {
     setVerificationResults(prev => [result, ...prev]);
 
     // Simulate async verification
-    setTimeout(() => {
-      const mockResult = generateMockVerificationResult(verificationType, verificationInput);
+    setTimeout(async () => {
+      const mockResult = await generateMockVerificationResult(verificationType, verificationInput);
       setVerificationResults(prev => 
         prev.map(r => r.id === result.id ? { ...r, ...mockResult } : r)
       );
@@ -58,53 +59,69 @@ export function VerifierPanel() {
     setVerificationInput('');
   };
 
-  const generateMockVerificationResult = (type: string, input: string) => {
-    const isSuccess = Math.random() > 0.3; // 70% success rate for demo
-    
-    switch (type) {
-      case 'receipt_nft':
+  const generateMockVerificationResult = async (type: string, input: string) => {
+    try {
+      if (type === 'zk_proof') {
+        // Use real Starknet contract for zk_proof verification
+        const provider = getProvider();
+        const contract = new ShadowNetContract(provider, process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '');
+        
+        // For demo, use input as both proof and public_inputs
+        const isValid = await contract.verifyProof(input, input);
+        
         return {
-          status: isSuccess ? 'valid' : 'invalid',
+          status: isValid ? 'valid' as const : 'invalid' as const,
           details: {
-            contractAddress: isSuccess ? '0x1234...5678' : undefined,
-            tokenId: isSuccess ? `#${Math.floor(Math.random() * 10000)}` : undefined,
-            btcTxHash: isSuccess ? `mock_tx_${Math.random().toString(36).substring(2, 15)}` : undefined,
-            blockHeight: isSuccess ? Math.floor(Math.random() * 800000) + 700000 : undefined,
-            amount: isSuccess ? Math.floor(Math.random() * 100000000) : undefined,
-            nftExists: isSuccess,
-            ownershipVerified: isSuccess
+            zkProofId: input,
+            proofValid: isValid,
+            btcTxHash: isValid ? `mock_tx_${Math.random().toString(36).substring(2, 15)}` : undefined,
+            amount: isValid ? Math.floor(Math.random() * 100000000) : undefined
           },
-          errorMessage: isSuccess ? undefined : 'NFT not found or invalid contract address'
+          errorMessage: isValid ? undefined : 'Invalid proof or proof expired'
         };
+      }
       
-      case 'zk_proof':
-        return {
-          status: isSuccess ? 'valid' : 'invalid',
-          details: {
-            zkProofId: isSuccess ? `proof_${Math.random().toString(36).substring(2, 15)}` : undefined,
-            proofValid: isSuccess,
-            btcTxHash: isSuccess ? `mock_tx_${Math.random().toString(36).substring(2, 15)}` : undefined,
-            amount: isSuccess ? Math.floor(Math.random() * 100000000) : undefined
-          },
-          errorMessage: isSuccess ? undefined : 'Invalid proof or proof expired'
-        };
+      // Fallback to mock for other types
+      const isSuccess = Math.random() > 0.3; // 70% success rate for demo
       
-      case 'btc_transaction':
-        return {
-          status: isSuccess ? 'valid' : 'invalid',
-          details: {
-            btcTxHash: input,
-            blockHeight: isSuccess ? Math.floor(Math.random() * 800000) + 700000 : undefined,
-            amount: isSuccess ? Math.floor(Math.random() * 100000000) : undefined
-          },
-          errorMessage: isSuccess ? undefined : 'Transaction not found or invalid'
-        };
-      
-      default:
-        return {
-          status: 'error',
-          errorMessage: 'Invalid verification type'
-        };
+      switch (type) {
+        case 'receipt_nft':
+          return {
+            status: isSuccess ? 'valid' as const : 'invalid' as const,
+            details: {
+              contractAddress: isSuccess ? '0x1234...5678' : undefined,
+              tokenId: isSuccess ? `#${Math.floor(Math.random() * 10000)}` : undefined,
+              btcTxHash: isSuccess ? `mock_tx_${Math.random().toString(36).substring(2, 15)}` : undefined,
+              blockHeight: isSuccess ? Math.floor(Math.random() * 800000) + 700000 : undefined,
+              amount: isSuccess ? Math.floor(Math.random() * 100000000) : undefined,
+              nftExists: isSuccess,
+              ownershipVerified: isSuccess
+            },
+            errorMessage: isSuccess ? undefined : 'NFT not found or invalid contract address'
+          };
+        
+        case 'btc_transaction':
+          return {
+            status: isSuccess ? 'valid' as const : 'invalid' as const,
+            details: {
+              btcTxHash: input,
+              blockHeight: isSuccess ? Math.floor(Math.random() * 800000) + 700000 : undefined,
+              amount: isSuccess ? Math.floor(Math.random() * 100000000) : undefined
+            },
+            errorMessage: isSuccess ? undefined : 'Transaction not found or invalid'
+          };
+        
+        default:
+          return {
+            status: 'error' as const,
+            errorMessage: 'Invalid verification type'
+          };
+      }
+    } catch (error) {
+      return {
+        status: 'error' as const,
+        errorMessage: `Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
     }
   };
 

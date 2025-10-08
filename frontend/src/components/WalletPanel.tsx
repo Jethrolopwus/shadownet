@@ -25,7 +25,7 @@ export function WalletPanel() {
 		subscribeWalletEvents((evt) => {
 			console.log("wallet event", evt);
 			// refresh minimal state when network/accounts change
-			void getWalletNetwork().then(setNetworkInfo).catch(() => {});
+			void getWalletNetwork().then(setNetworkInfo).catch(() => { });
 		}).then((d) => {
 			dispose = d;
 		});
@@ -66,27 +66,12 @@ export function WalletPanel() {
 		const mockInvoiceId = `INV-${Date.now()}`;
 		const mockAmount = Math.floor(Math.random() * 100000000); // Random amount in sats
 		const mockTxHash = `mock_tx_${Math.random().toString(36).substring(2, 15)}`;
-		
+
 		setActiveMinting(mockInvoiceId);
-		// The ReceiptMinting component will handle the simulation
 	};
 
 	return (
 		<div className="space-y-6 p-6 border rounded-xl bg-white shadow-sm">
-			<div className="flex items-center justify-between">
-				<h2 className="text-lg font-medium">Wallet Controls</h2>
-				<div className="flex gap-2">
-					{!connected ? (
-						<button onClick={() => run(connect)} disabled={busy} className="px-4 py-2 rounded-md bg-black text-white hover:bg-zinc-800 disabled:opacity-60">
-							Connect Xverse
-						</button>
-					) : (
-						<button onClick={() => run(disconnect)} disabled={busy} className="px-4 py-2 rounded-md border hover:bg-gray-50 disabled:opacity-60">
-							Disconnect
-						</button>
-					)}
-				</div>
-			</div>
 
 			<div className="flex flex-wrap gap-2">
 				<button
