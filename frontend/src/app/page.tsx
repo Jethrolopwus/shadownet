@@ -19,13 +19,13 @@ export default function Home() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href="/wallet"
+              href="/merchant"
               className="px-5 py-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
             >
               Get In Touch
             </Link>
             <Link
-              href="/wallet"
+              href="/merchant"
               className="px-5 py-3 rounded-full border hover:bg-gray-50"
             >
               Portfolio

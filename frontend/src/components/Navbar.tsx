@@ -17,20 +17,25 @@ export function Navbar() {
         </Link>
         <div className="flex  items-center gap-1">
           <Link href="/" className={linkClass("/")}>Home</Link>
-          <Link href="/wallet" className={linkClass("/wallet")}>Wallet</Link>
           <Link href="/merchant" className={linkClass("/merchant")}>Merchant</Link>
           <Link href="/verifier" className={linkClass("/verifier")}>Verifier</Link>
+          <Link href="/receipts" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100">
+            Receipts
+          </Link>
+          <Link href="/update_admin" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100">
+            UpdateAdmin
+          </Link>
           <a
             href="https://github.com/Jethrolopwus/shadownet"
             target="_blank"
-            rel="noreferrer"
-            className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100"
+            rel="noopener noreferrer"
+            className="px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100"
           >
             GitHub
           </a>
-          <div className=" pl-20"> 
+          <div className=" pl-20">
 
-          <WalletConnectButton />
+            <WalletConnectButton />
           </div>
         </div>
       </nav>

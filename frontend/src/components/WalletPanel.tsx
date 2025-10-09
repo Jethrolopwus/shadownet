@@ -19,12 +19,12 @@ export function WalletPanel() {
 	const [busy, setBusy] = useState(false);
 	const [activeMinting, setActiveMinting] = useState<string | null>(null);
 	const [receipts, setReceipts] = useState<any[]>([]);
-
+	
 	useEffect(() => {
 		let dispose: (() => void) | undefined;
 		subscribeWalletEvents((evt) => {
 			console.log("wallet event", evt);
-			// refresh minimal state when network/accounts change
+			
 			void getWalletNetwork().then(setNetworkInfo).catch(() => { });
 		}).then((d) => {
 			dispose = d;
@@ -223,7 +223,7 @@ export function WalletPanel() {
 				</div>
 			</div>
 
-			{/* Active Receipt Minting */}
+			
 			{activeMinting && (
 				<div className="mt-6">
 					<ReceiptMinting
