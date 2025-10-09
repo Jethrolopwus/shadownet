@@ -1,0 +1,15 @@
+{
+    "version": 1,
+    "contracts": [
+        {
+            "id": "6d7jov9nn7jqc",
+            "package_name": "contract",
+            "contract_name": "ShadowNetReceipt",
+            "module_path": "contract::ShadowNetReceipt",
+            "artifacts": {
+                "sierra": "contract_ShadowNetReceipt.contract_class.json",
+                "casm": null
+            }
+        }
+    ]
+}
