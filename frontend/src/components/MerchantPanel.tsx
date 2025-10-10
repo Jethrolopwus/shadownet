@@ -5,6 +5,7 @@ import { Contract, Account, Provider } from "starknet";
 import { useXverse } from "@/hooks/useXverse";
 import { listenForInvoiceSettlement, InvoiceSettlementData } from "@/lib/lightning";
 import toast from "react-hot-toast";
+import { FadeLoader } from "react-spinners"; 
 
 const receiptAbi = [
   {
@@ -34,7 +35,7 @@ export interface InvoiceSettlementDataExtended extends InvoiceSettlementData {
 }
 
 export function MerchantPanel() {
-  const { connected, walletInfo, connect: connectXverse, disconnect } = useXverse();
+  const { connected, connect: connectXverse } = useXverse();
   const [account, setAccount] = useState<Account | null>(null);
   const [provider, setProvider] = useState<Provider | null>(null);
 
@@ -47,29 +48,27 @@ export function MerchantPanel() {
     try {
       await connectXverse();
       const wallet = (window as any).starknet;
-      if (!wallet) {
-        throw new Error("StarkNet wallet (Xverse) not found on window");
-      }
+      if (!wallet) throw new Error("StarkNet wallet (Xverse) not found on window");
+
       await wallet.enable({ showModal: false });
       const acct: Account = wallet.account;
 
-      setAccount(acct);
       const rpcUrl = process.env.NEXT_PUBLIC_STARKNET_RPC;
       const p = rpcUrl ? new Provider({ nodeUrl: rpcUrl }) : new Provider();
-      setProvider(p);
 
+      setAccount(acct);
+      setProvider(p);
       setStatusMessage("Xverse wallet connected");
     } catch (err: any) {
       console.error("Error initializing Xverse:", err);
-      setError(err.message || "Xverse initialization failed");
-      toast.error(err.message || "Xverse initialization failed");
+      const msg = err.message || "Xverse initialization failed";
+      setError(msg);
+      toast.error(msg);
     }
   }, [connectXverse]);
 
   useEffect(() => {
-    if (connected && !account) {
-      initXverse();
-    }
+    if (connected && !account) initXverse();
   }, [connected, account, initXverse]);
 
   function toFelt(value: string | number): string | bigint {
@@ -115,24 +114,32 @@ export function MerchantPanel() {
 
       const txHash = invocation.transaction_hash;
       setLastTxHash(txHash);
-      setStatusMessage(`Transaction submitted: ${txHash}`);
+      setStatusMessage(`⏳ Transaction submitted: ${txHash}`);
 
-      const receipt = await provider.waitForTransaction(txHash);
+      const receipt: any = await provider.waitForTransaction(txHash);
       console.log("Transaction receipt:", receipt);
 
-      if (receipt.execution_status === "SUCCEEDED") {
-        setStatusMessage("Receipt successfully recorded!");
+      const executionStatus =
+        receipt.execution_status || receipt.executionResult || receipt.finality_status;
+
+      if (
+        executionStatus === "SUCCEEDED" ||
+        executionStatus === "ACCEPTED_ON_L2" ||
+        executionStatus === "ACCEPTED_ON_L1"
+      ) {
+        setStatusMessage(" Receipt successfully recorded!");
         toast.success("Receipt recorded successfully!");
       } else {
-        const msg = `Transaction failed: execution_status ${receipt.execution_status}`;
+        const msg = `Transaction failed: status ${executionStatus}`;
         setError(msg);
         toast.error(msg);
       }
     } catch (err: any) {
       console.error("submit_receipt error:", err);
-      setError(err.message || "submit_receipt failed");
+      const msg = err.message || "submit_receipt failed";
+      setError(msg);
       setStatusMessage("Failed to submit receipt");
-      toast.error(err.message || "Failed to submit receipt");
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -152,33 +159,43 @@ export function MerchantPanel() {
   }, [account, provider]);
 
   return (
-    <div className="min-h-screen space-y-6 p-6  bg-white">
+    <div className="min-h-screen space-y-6 p-6 bg-white relative">
+      {/* ✅ Subtle overlay loader (non-intrusive) */}
+      {isSubmitting && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-50">
+          <div className="flex flex-col items-center">
+            <FadeLoader color="#000" height={15} width={5} radius={2} margin={2} />
+            <p className="mt-3 text-gray-800 font-medium">Submitting to StarkNet...</p>
+          </div>
+        </div>
+      )}
+
       {!connected ? (
         <button
           onClick={connectXverse}
-          className="px-4 py-2 bg-black text-white rounded-md hover:bg-black"
+          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-900 transition"
         >
           Connect Xverse Wallet
         </button>
       ) : (
-        <p className="text-green-600">✅ Xverse connected</p>
+        <p className="text-green-600 font-medium"> Xverse connected</p>
       )}
 
-      <div className="mt-4 p-4 bg-gray-100 rounded">
+      <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner">
         <p>Status: {statusMessage}</p>
-        {isSubmitting && <p>Submitting to chain...</p>}
+        {isSubmitting && <p className="animate-pulse">Submitting to chain...</p>}
         {lastTxHash && (
-          <p className="break-all">
+          <p className="break-all text-sm mt-2">
             Tx Hash: <code>{lastTxHash}</code>
           </p>
         )}
-        {error && <p className="text-red-600">Error: {error}</p>}
+        {error && <p className="text-red-600 mt-2">Error: {error}</p>}
       </div>
 
-      <div className="mt-4 text-sm text-gray-700">
+      <div className="mt-6 text-sm text-gray-700">
         <p>
-          Once a Lightning invoice is settled, your system will automatically call{" "}
-          <code>submit_receipt</code> to record the receipt on-chain.
+          Once a Lightning invoice is settled, your system automatically calls{" "}
+          <code>submit_receipt</code> to record the proof on StarkNet.
         </p>
       </div>
     </div>

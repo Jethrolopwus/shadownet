@@ -5,10 +5,6 @@ export default function Home() {
     <div className="min-h-[calc(100vh-8rem)] py-16">
       <section className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-gray-600 bg-white">
-            <span className="size-1.5 rounded-full bg-orange-500"></span>
-            Digital Design Agency
-          </div>
           <h1 className="mt-5 text-5xl md:text-6xl font-semibold tracking-tight text-gray-900">
             We Transform Ideas
             <span className="block italic text-gray-500">into digital experiences</span>
@@ -20,15 +16,15 @@ export default function Home() {
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
               href="/merchant"
-              className="px-5 py-3 rounded-full bg-black text-white hover:bg-zinc-800 transition-colors"
+              className="px-5 py-3 rounded-full bg-black text-white hover:bg-gray-100 hover:border hover:text-black transition-colors"
             >
               Get In Touch
             </Link>
             <Link
-              href="/merchant"
-              className="px-5 py-3 rounded-full border hover:bg-gray-50"
+              href="/verifier"
+              className="px-5 py-3 rounded-full border hover:bg-black hover:border hover:text-white"
             >
-              Portfolio
+             Proof Verifier
             </Link>
           </div>
         </div>

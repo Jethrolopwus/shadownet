@@ -14,11 +14,9 @@ export function useXverse(): XverseConnection {
 	const [walletInfo, setWalletInfo] = useState<any | null>(null);
 
 	const connect = useCallback(async () => {
-    // Request a lightweight capability to prompt Xverse directly, bypassing selector
     try {
       await wallet.request("getAddresses", { providerId: getXverseProviderId() } as any);
     } catch (e) {
-      // ignore; this is just to trigger provider linkage; user may reject
     }
     setWalletInfo({ selected: true });
 		setConnected(true);
