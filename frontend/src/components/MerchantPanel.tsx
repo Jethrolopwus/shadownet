@@ -46,7 +46,6 @@ export function MerchantPanel() {
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
- 
   const [modalOpen, setModalOpen] = useState(false);
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState<number>(0);
@@ -79,7 +78,6 @@ export function MerchantPanel() {
     if (connected && !account) initXverse();
   }, [connected, account, initXverse]);
 
-
   function toFelt(value: string | number | bigint): bigint {
     if (typeof value === "number") return BigInt(value);
     if (typeof value === "bigint") return value;
@@ -89,7 +87,6 @@ export function MerchantPanel() {
     }
     throw new Error("Unsupported value type for felt conversion");
   }
-
 
   const handlePaymentAndReceipt = useCallback(async () => {
     try {
@@ -163,7 +160,6 @@ export function MerchantPanel() {
         toast.error(msg);
       }
       
-    
       setRecipient("");
       setAmount(0);
     } catch (err: any) {
@@ -228,49 +224,60 @@ export function MerchantPanel() {
     [account, provider]
   );
 
-
   return (
-    <div className="min-h-screen space-y-6 p-6 bg-white relative">
+    <div className="w-full bg-white/95 min-h-screen flex mt-2 backdrop-blur-sm rounded-2xl shadow-2xl p-8 relative">
       {isSubmitting && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/70 z-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl z-50">
           <div className="flex flex-col items-center">
-            <FadeLoader color="#000" />
-            <p className="mt-3 text-gray-800 font-medium">
+            <FadeLoader color="#003B7A" />
+            <p className="mt-3 text-[#003B7A] font-semibold">
               Submitting to StarkNet...
             </p>
           </div>
         </div>
       )}
-
-    
       {modalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-40">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Send Bitcoin Payment</h2>
-            <input
-              type="text"
-              placeholder="Enter BTC recipient address"
-              value={recipient}
-              onChange={(e) => setRecipient(e.target.value)}
-              className="border p-2 rounded w-full mb-3"
-            />
-            <input
-              type="number"
-              placeholder="Amount in Satoshis"
-              value={amount || ""}
-              onChange={(e) => setAmount(Number(e.target.value))}
-              className="border p-2 rounded w-full mb-3"
-            />
-            <div className="flex gap-3">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-40 p-4">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-6 text-[#003B7A] text-center">
+              Send Bitcoin Payment
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Recipient Address
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter BTC recipient address"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  className="border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-[#003B7A] focus:border-transparent outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount (Satoshis)
+                </label>
+                <input
+                  type="number"
+                  placeholder="Amount in Satoshis"
+                  value={amount || ""}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  className="border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-[#003B7A] focus:border-transparent outline-none"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={handlePaymentAndReceipt}
-                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-900 flex-1"
+                className="bg-[#003B7A] text-white px-6 py-3 rounded-lg hover:bg-[#002855] transition-colors flex-1 font-semibold"
               >
                 Send Payment
               </button>
               <button
                 onClick={() => setModalOpen(false)}
-                className="bg-gray-300 text-black px-4 py-2 rounded-md hover:bg-gray-400"
+                className="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
               >
                 Cancel
               </button>
@@ -278,43 +285,63 @@ export function MerchantPanel() {
           </div>
         </div>
       )}
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          {!connected ? (
+            <button
+              onClick={connectXverse}
+              className="w-full sm:w-auto px-6 py-3 bg-[#003B7A] text-white rounded-lg hover:bg-[#002855] transition-colors font-semibold shadow-lg"
+            >
+              Connect Xverse Wallet
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 text-green-600 font-semibold bg-green-50 px-4 py-2 rounded-lg">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Xverse Connected
+            </div>
+          )}
 
-      <div className="flex items-center gap-4">
-        {!connected ? (
           <button
-            onClick={connectXverse}
-            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-900"
+            onClick={() => setModalOpen(true)}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto px-6 py-3 bg-[#003B7A] text-white rounded-lg hover:bg-[#002855] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg"
           >
-            Connect Xverse Wallet
+            Pay with Xverse (BTC)
           </button>
-        ) : (
-          <p className="text-green-600 font-medium">Xverse Connected ✅</p>
-        )}
-
-        <button
-          onClick={() => setModalOpen(true)}
-          disabled={isSubmitting}
-          className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-900 disabled:opacity-60"
-        >
-          Pay with Xverse (BTC)
-        </button>
-      </div>
-
-      <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-inner">
-        <p>Status: {statusMessage}</p>
-        {lastTxHash && (
-          <p className="break-all text-sm mt-2">
-            Tx Hash: <code>{lastTxHash}</code>
+        </div>
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl shadow-inner border border-gray-200">
+          <div className="space-y-3">
+            <div className="flex items-start gap-2">
+              <span className="font-semibold text-gray-700 min-w-[60px]">Status:</span>
+              <span className="text-gray-900">{statusMessage || "Ready to process payments"}</span>
+            </div>
+            {lastTxHash && (
+              <div className="flex items-start gap-2">
+                <span className="font-semibold text-gray-700 min-w-[60px]">Tx Hash:</span>
+                <code className="text-xs bg-white px-3 py-2 rounded border border-gray-200 break-all flex-1">
+                  {lastTxHash}
+                </code>
+              </div>
+            )}
+            {error && (
+              <div className="flex items-start gap-2">
+                <span className="font-semibold text-red-600 min-w-[60px]">Error:</span>
+                <span className="text-red-600">{error}</span>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <p className="text-sm text-gray-700 leading-relaxed">
+            <span className="font-semibold text-[#003B7A]">ℹ️ How it works:</span> Once a Lightning invoice is settled, the system automatically calls{" "}
+            <code className="bg-white px-2 py-1 rounded text-[#003B7A] font-mono text-xs">
+              submit_receipt
+            </code>{" "}
+            to record the proof on StarkNet.
           </p>
-        )}
-        {error && <p className="text-red-600 mt-2">Error: {error}</p>}
-      </div>
-
-      <div className="ml-8 text-sm text-gray-700">
-        <p>
-          Once a Lightning invoice is settled, your system automatically calls{" "}
-          <code>submit_receipt</code> to record the proof on StarkNet.
-        </p>
+        </div>
       </div>
     </div>
   );

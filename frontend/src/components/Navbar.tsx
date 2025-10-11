@@ -12,15 +12,15 @@ export function Navbar() {
 
   const linkClass = (href: string) =>
     `block px-3 py-2 rounded-md text-sm font-medium transition-colors ${pathname === href
-      ? "bg-black text-white"
+      ? "bg-[#003B7A] text-white"
       : "text-gray-700 hover:bg-gray-100"
     }`;
 
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+    <header className="w-full sticky top-0 z-50 bg-white backdrop-blur-md border-b">
       <nav className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between">
        
-        <Link href="/" className="font-semibold tracking-tight text-lg sm:text-xl">
+        <Link href="/" className="font-semibold tracking-tight text-[#003B7A] text-lg sm:text-xl">
           ShadowNet
         </Link>
 

@@ -20,7 +20,7 @@ export function WalletConnectButton() {
       <button
         onClick={() => run(connect)}
         disabled={busy}
-        className="px-4 py-2 rounded-lg text-sm font-medium bg-black text-white hover:bg-zinc-800 disabled:opacity-60 transition-all"
+        className="px-4 py-2 rounded-lg text-sm font-medium bg-[#003B7A] text-white hover:bg-zinc-800 disabled:opacity-60 transition-all"
       >
         {busy ? "Connecting..." : "Connect Xverse"}
       </button>
