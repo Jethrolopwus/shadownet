@@ -17,7 +17,7 @@ export function Navbar() {
     }`;
 
   return (
-    <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <header className="w-full sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <nav className="mx-auto max-w-6xl px-4 sm:px-6 h-16 flex items-center justify-between">
        
         <Link href="/" className="font-semibold tracking-tight text-lg sm:text-xl">
@@ -30,7 +30,6 @@ export function Navbar() {
           <Link href="/merchant" className={linkClass("/merchant")}>Merchant</Link>
           <Link href="/verifier" className={linkClass("/verifier")}>Verifier</Link>
           <Link href="/receipts" className={linkClass("/receipts")}>Receipts</Link>
-          <Link href="/update_admin" className={linkClass("/update_admin")}>UpdateAdmin</Link>
           <a
             href="https://github.com/Jethrolopwus/shadownet"
             target="_blank"
@@ -83,13 +82,6 @@ export function Navbar() {
               onClick={() => setMenuOpen(false)}
             >
               Receipts
-            </Link>
-            <Link
-              href="/update_admin"
-              className={linkClass("/update_admin")}
-              onClick={() => setMenuOpen(false)}
-            >
-              UpdateAdmin
             </Link>
             <a
               href="https://github.com/Jethrolopwus/shadownet"

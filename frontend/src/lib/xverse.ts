@@ -1,4 +1,3 @@
-// Client helper for SecretKey Labs Xverse API via Next proxy
 
 export type XverseNetwork = 'testnet4' | 'signet' | 'mainnet';
 
@@ -17,7 +16,6 @@ async function proxy<T>(path: string, init?: { method?: string; payload?: any })
   return res.json();
 }
 
-// Example endpoints — adapt to actual Xverse API paths
 export async function getTx(txid: string) {
   return proxy(`/bitcoin/tx/${txid}`);
 }

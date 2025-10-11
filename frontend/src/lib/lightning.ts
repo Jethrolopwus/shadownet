@@ -6,11 +6,9 @@ export interface InvoiceSettlementData {
     proof_hash: string;
 }
 
-// Simulate Lightning invoice event listener
 export const listenForInvoiceSettlement = (
     onPaid: (invoice: InvoiceSettlementData) => void
 ): (() => void) => {
-    // Replace this with real WebSocket or polling logic from your Lightning backend
     const simulate = setTimeout(() => {
         onPaid({
             payer_hash: "0xabc123",
@@ -19,7 +17,7 @@ export const listenForInvoiceSettlement = (
             timestamp: Math.floor(Date.now() / 1000),
             proof_hash: "0xhashofproof",
         });
-    }, 10000); // simulate after 10 seconds
+    }, 10000); 
 
     return () => clearTimeout(simulate);
 };

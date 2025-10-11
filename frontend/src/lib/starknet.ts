@@ -5,7 +5,7 @@
 export const STARKNET_CONFIG = {
   network: process.env.NEXT_PUBLIC_STARKNET_NETWORK || 'testnet',
   rpcUrl: process.env.NEXT_PUBLIC_STARKNET_RPC || 'https://starknet-testnet.public.blastapi.io/rpc/v0_7',
-  contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '', // Set after deployment
+  contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '', 
 };
 
 // ABI for MockZKVerifier contract
@@ -61,11 +61,11 @@ export function getContract(provider: any): any {
   return {
     address: STARKNET_CONFIG.contractAddress,
     abi: MOCK_VERIFIER_ABI,
-    // Mock contract methods
+    
   };
 }
 
-// Contract interaction functions
+
 export class ShadowNetContract {
   private contract: any;
   private provider: any;
