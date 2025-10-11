@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Contract, Account, Provider } from "starknet";
 import { useXverse } from "@/hooks/useXverse";
-import { listenForInvoiceSettlement, InvoiceSettlementData } from "@/lib/lightning";
+import { InvoiceSettlementData } from "@/lib/lightning";
 import toast from "react-hot-toast";
 import { FadeLoader } from "react-spinners";
 import { sendBitcoinTransfer } from "@/lib/btc";
@@ -27,7 +27,7 @@ const receiptAbi = [
 
 const CONTRACT_ADDRESS =
   process.env.NEXT_PUBLIC_CONTRACT_ADDRESS ||
-  "0x032999b94db176a3a4df1e6caa58e2ed4bf781a19c21e43b295eeac867d19bba";
+  "0x03c0748541a202e2898ffb6b23a2957d4c12fa0e6b7b975827f30f1bd6c82713";
 
 export interface InvoiceSettlementDataExtended extends InvoiceSettlementData {
   payer_hash: string;
@@ -108,14 +108,14 @@ export function MerchantPanel() {
       const res = await sendBitcoinTransfer(recipient, amount);
 
       const txid =
-        res?.txid ||
-        res?.txId ||
-        res?.hash ||
-        res?.transactionId ||
-        res?.tx?.txid ||
+        (res as any)?.txid ||
+        (res as any)?.txId ||
+        (res as any)?.hash ||
+        (res as any)?.transactionId ||
+        (res as any)?.tx?.txid ||
         res?.result?.txid ||
-        res?.result?.txHash ||
-        res?.data?.result?.txid;
+        (res as any)?.result?.txHash ||
+        (res as any)?.data?.result?.txid;
 
       if (!txid) {
         console.error("Wallet response:", res);

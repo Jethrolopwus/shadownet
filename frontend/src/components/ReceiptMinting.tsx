@@ -65,7 +65,6 @@ export function ReceiptMinting({ invoiceId, amount, btcTxHash, onMintingComplete
         }
         stepIndex++;
       } else {
-        // Call server to mint receipt (mock server-side)
         try {
           const res = await fetch('/api/receipts/mint', {
             method: 'POST',
