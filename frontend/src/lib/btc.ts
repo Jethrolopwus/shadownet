@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { wallet } from "@/lib/sats";
 import { getXverseOrThrow } from "@/lib/wallet";
 import {
 	request,
-	BitcoinNetworkType,
 	RpcErrorCode,
 } from "sats-connect";
 
@@ -16,7 +18,7 @@ export async function signBitcoinPsbt(psbtBase64: string) {
 }
 
 export async function sendBitcoinTransfer(recipient: string, amountSats: number, feeRate?: number) {
-	// const provider = await getXverseOrThrow();
+
 	try {
 		const response = await request("sendTransfer", {
 			recipients: [

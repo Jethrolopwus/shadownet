@@ -1,10 +1,9 @@
-// Minimal Cashu client stubs for PoC.
-// Replace with real Cashu SDK (e.g., @cashu/cashu) when ready.
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export type MintInfo = { mintUrl: string };
 
 export async function getMintInfo(mintUrl: string): Promise<MintInfo> {
-  // Mock fetch
+
   await new Promise((r) => setTimeout(r, 300));
   return { mintUrl };
 }

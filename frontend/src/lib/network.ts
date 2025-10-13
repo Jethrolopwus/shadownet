@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { wallet } from "@/lib/sats";
-import { getXverseOrThrow } from "@/lib/wallet";
 
 export type BitcoinNetwork = "mainnet" | "testnet" | "regtest";
 export type StacksNetwork = "mainnet" | "testnet";

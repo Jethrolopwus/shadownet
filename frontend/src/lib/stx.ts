@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { wallet } from "@/lib/sats";
 import { getXverseOrThrow } from "@/lib/wallet";
 

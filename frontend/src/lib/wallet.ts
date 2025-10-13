@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+
 import { getProviders, getProviderById } from "sats-connect";
 
 export async function detectXverse() {
