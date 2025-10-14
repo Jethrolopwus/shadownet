@@ -103,18 +103,6 @@ scarb build
 scarb test
 ```
 
-Artifacts are output under `contract/target/`.
-
-## Privacy & ZK (mock_zk_verifier.cairo)
-
-The `contract/src/mock_zk_verifier.cairo` contract models a zero-knowledge proof verifier interface used by the receipt/verifier flow. It is a mock implementation intended for local testing that simulates ZK verification without requiring a full proof system. This allows you to:
-
-- Exercise the integration points between receipts and a verifier contract
-- Develop privacy-preserving flows (e.g., verify commitments/proofs) before wiring a real prover/verifier backend
-
-Where it’s used:
-- `src/verifier.cairo` consumes the verifier interface to validate receipt data
-- `tests/test_shadownet.cairo` includes tests that run against the mock verifier and the receipt contracts
 
 How to run locally:
 
