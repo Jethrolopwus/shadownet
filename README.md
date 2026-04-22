@@ -1,127 +1,125 @@
-# ShadowNet – Xverse (Bitcoin + Stacks) Demo + Cairo Contracts
+# ShadowNet
 
-ShadowNet is a dual-stack repository that contains:
+ShadowNet is a Solana-based receipt verification app with:
 
-- A Next.js (TypeScript) frontend that integrates Xverse via Sats Connect for Bitcoin and Stacks
-- A Cairo/StarkNet contracts workspace (Scarb) with sample receipt/verifier contracts and tests
+- A Next.js frontend for wallet connection, devnet SOL transfer, receipt issuance, and receipt re-verification.
+- An Anchor program that stores receipts as PDAs and supports issue / verify / revoke flows.
 
-This project demonstrates how to connect to the Xverse wallet, fetch addresses, sign messages, send Bitcoin, transfer STX, and read/change wallet networks, while also keeping a StarkNet contracts workspace alongside.
+The goal is to provide verifiable payment receipts while keeping the architecture simple enough for iterative product development.
 
-## Contents
+## What Works Today
 
-- `frontend/` – Next.js 15 + TypeScript app with Xverse integration via `sats-connect`
-- `contract/` – Cairo contracts managed with Scarb and Foundry for StarkNet
+### Frontend (`frontend/`)
+
+- Connect/disconnect injected Solana wallet (Phantom-compatible).
+- Sign message from wallet.
+- Send SOL on devnet and wait for confirmation.
+- Issue receipt on-chain immediately after transfer confirmation by calling the Anchor `issue_receipt` instruction.
+- Display issued receipt metadata (PDA, payload hash, instruction signature).
+- Verify receipt PDA against on-chain data (issuer, recipient, payload hash, discriminator, owner, revoked flag).
+- Re-verify older receipts from Receipt History.
+- Persist receipt history and verification badge status in `localStorage`.
+
+### Program (`contract/`)
+
+Anchor program ID:
+
+`BFBhJ97pvs6iFpBx8jjjrUteTeLjc6eag67ZbMRL25v7`
+
+Instructions:
+
+- `issue_receipt(payload_hash, recipient)`
+- `verify_receipt(proof)` (mock proof logic for now)
+- `revoke_receipt()`
+
+Receipt account stores:
+
+- issuer
+- recipient
+- payload_hash
+- verified
+- revoked
+- timestamp
+- bump
+
+## Repository Structure
+
+- `frontend/` — Next.js 15 app (Solana wallet UX + receipt flows)
+- `contract/` — Anchor workspace and Solana program
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- Xverse Wallet browser extension (Chrome/Brave/Edge or Firefox)
-- (Contracts) Scarb and StarkNet Foundry installed if you want to build/test Cairo contracts
+### Frontend
 
-## Quick Start (Frontend)
+- Node.js 20+
+- npm
+- Phantom (or compatible injected Solana wallet)
 
-1) Install deps
+### Program
+
+- Rust toolchain
+- Solana CLI
+- Anchor CLI (`0.32.x` recommended for this workspace)
+
+## Quick Start
+
+### 1) Frontend
 
 ```bash
 cd frontend
 npm install
-```
-
-2) Run the dev server
-
-```bash
 npm run dev
 ```
 
 Open `http://localhost:3000`.
 
-3) Install and unlock Xverse
-- Install Xverse extension and create/import a wallet
-- Unlock it and ensure site access is allowed for `localhost`
+Optional env config (`frontend/.env.local`):
 
-4) Connect & try actions
-- Click "Connect Xverse" (a provider selector will appear; choose Xverse)
-- Use the buttons to:
-  - Load BTC Addresses
-  - Load STX Accounts
-  - Sign BTC Message / Sign STX Message
-  - Send BTC (enter recipient + sats)
-  - Transfer STX (enter recipient + microstx)
-  - Get Network / Change Network / Apply Env Networks
-
-### Env-based Network Toggle
-Create `frontend/.env.local`:
-
-```
-NEXT_PUBLIC_BITCOIN_NETWORK=testnet
-NEXT_PUBLIC_STACKS_NETWORK=testnet
+```env
+NEXT_PUBLIC_SOLANA_PROGRAM_ID=BFBhJ97pvs6iFpBx8jjjrUteTeLjc6eag67ZbMRL25v7
 ```
 
-Then in the UI, click "Apply Env Networks" to request switches.
-
-## Xverse / Sats Connect Notes
-
-- Library: `sats-connect`
-- We use the library’s default wallet client under the hood and invoke methods such as:
-  - Bitcoin: `getAddresses`, `signMessage`, `signPsbt`, `sendTransfer`
-  - Stacks: `stx_getAccounts`, `stx_signMessage`, `stx_transferStx`, `stx_callContract`
-  - Wallet: `wallet_getNetwork`, `wallet_changeNetwork`
-- Reference documentation: `https://docs.xverse.app/sats-connect`
-
-## App Structure (Frontend)
-
-- `src/components/WalletPanel.tsx` – Main UI to connect wallet and trigger actions
-- `src/hooks/useXverse.ts` – Connection state management
-- `src/lib/wallet.ts` – Provider detection, event subscription helpers
-- `src/lib/addresses.ts` – `getBitcoinAddresses`, `getStacksAccounts`
-- `src/lib/signing.ts` – `signBitcoinMessage`, `signStacksMessage`
-- `src/lib/btc.ts` – `signBitcoinPsbt`, `sendBitcoinTransfer`
-- `src/lib/stx.ts` – `transferStx`, `callStacksContract`
-- `src/lib/network.ts` – `getWalletNetwork`, `changeWalletNetwork`
-- `src/lib/config.ts` – Reads env network choices
-
-## Cairo Contracts (contract/)
-
-This workspace includes sample receipt/verifier contracts. Useful files:
-
-- `src/lib.cairo` – entry
-- `src/interfaces.cairo` – interfaces
-- `src/receipt.cairo`, `src/simple_receipt.cairo` – sample receipts
-- `src/verifier.cairo`, `src/mock_zk_verifier.cairo` – verifiers
-- `tests/test_shadownet.cairo` – tests
-
-### Build
+### 2) Build Program
 
 ```bash
 cd contract
-scarb build
+anchor build
 ```
 
-### Test
-
-```bash
-scarb test
-```
-
-
-How to run locally:
+### 3) Deploy Program (Devnet)
 
 ```bash
 cd contract
-scarb build
-scarb test
+solana config set --url https://api.devnet.solana.com
+solana address
+solana balance
+solana airdrop 2
+anchor deploy --provider.cluster devnet
 ```
 
-Adapting to a real verifier:
-- Replace `mock_zk_verifier.cairo` with bindings to an on-chain verifier contract that can verify proofs from your chosen proving system
-- Keep the same interface so the rest of the contracts remain compatible
+If deploy fails with `insufficient funds`, airdrop more SOL and retry.
 
-## Common Issues & Tips
+## End-to-End Flow (Current UX)
 
-- If the provider selector appears but extension doesn’t pop, ensure Xverse is unlocked and site access is allowed. Reload the page.
-- For Bitcoin sends on testnet, fund your address first (use a testnet faucet).
-- For STX transfers on testnet, fund your STX address via a faucet.
-- Message signing is best used with a server-side nonce verification flow for real auth.
+1. Connect wallet in the frontend.
+2. Enter recipient and SOL amount.
+3. Click `Send + Issue Receipt`.
+4. Confirm transfer transaction.
+5. Confirm receipt instruction transaction.
+6. Review receipt details and explorer links.
+7. Use `Verify Receipt PDA` (or per-row `Verify`) to confirm on-chain receipt fields.
+
+## Development Notes
+
+- Frontend verification decodes receipt accounts directly from devnet and validates expected fields.
+- `verify_receipt` in the program currently uses mock proof logic; production proof verification is still to be integrated.
+- Existing `contract/tests/contract.ts` is a scaffold and should be updated to match current program instructions.
+
+## Intended Next Steps
+
+- Replace mock proof route and mock verifier logic with real ZK proof verification.
+- Add stronger integration tests for issue/verify/revoke instruction paths.
+- Add backend persistence/indexing for receipts beyond browser `localStorage`.
 
 ## License
 
