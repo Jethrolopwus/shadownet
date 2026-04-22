@@ -2,9 +2,10 @@ import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
-  const { invoiceId, amountSats, paymentRef, proofId, proofHash } = body || {};
-  if (!invoiceId || !amountSats || !paymentRef || !proofId || !proofHash) {
-    return new Response(JSON.stringify({ error: 'invoiceId, amountSats, paymentRef, proofId, proofHash required' }), { status: 400 });
+  const { invoiceId, amountLamports, amountSats, paymentRef, proofId, proofHash } = body || {};
+  const amount = amountLamports ?? amountSats;
+  if (!invoiceId || !amount || !paymentRef || !proofId || !proofHash) {
+    return new Response(JSON.stringify({ error: 'invoiceId, amountLamports, paymentRef, proofId, proofHash required' }), { status: 400 });
   }
 
 
@@ -15,5 +16,4 @@ export async function POST(req: NextRequest) {
     headers: { 'content-type': 'application/json' },
   });
 }
-
 

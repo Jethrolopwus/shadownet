@@ -1,9 +1,10 @@
 "use client";
+
 import { useState } from "react";
-import { useXverse } from "@/hooks/useXverse";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 
 export function WalletConnectButton() {
-  const { connected, connect, disconnect } = useXverse();
+  const { connected, connect, disconnect } = useSolanaWallet();
   const [busy, setBusy] = useState(false);
 
   async function run<T>(fn: () => Promise<T>) {
@@ -22,7 +23,7 @@ export function WalletConnectButton() {
         disabled={busy}
         className="px-4 py-2 rounded-lg text-sm font-medium bg-[#003B7A] text-white hover:bg-zinc-800 disabled:opacity-60 transition-all"
       >
-        {busy ? "Connecting..." : "Connect Xverse"}
+        {busy ? "Connecting..." : "Connect Solana Wallet"}
       </button>
     );
   }

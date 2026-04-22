@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ShadowNet",
-  description: "BTC verifier",
+  description: "Solana receipt verifier",
 };
 
 export default function RootLayout({
@@ -27,9 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#003B7A]`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#003B7A]`}>
         <Navbar />
         <main className="mx-auto max-w-full">{children}</main>
         <Footer />
