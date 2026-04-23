@@ -77,6 +77,20 @@ export type VerifyReceiptResult = {
   };
 };
 
+export type SolanaVerifyReceiptResult = {
+  signature: string;
+  slot: number | null;
+  explorerUrl: string;
+  receiptPda: string;
+};
+
+export type SolanaRevokeReceiptResult = {
+  signature: string;
+  slot: number | null;
+  explorerUrl: string;
+  receiptPda: string;
+};
+
 export type SolanaWalletState = {
   connected: boolean;
   publicKey: string | null;
@@ -89,6 +103,8 @@ export type SolanaWalletState = {
   signMessage: (message: string) => Promise<string>;
   sendDevnetTransfer: (recipient: string, lamports: number) => Promise<SolanaTransferResult>;
   issueReceiptOnDevnet: (paymentSignature: string, recipient: string) => Promise<SolanaIssueReceiptResult>;
+  verifyReceiptOnDevnet: (receiptPda: string, paymentSignature: string) => Promise<SolanaVerifyReceiptResult>;
+  revokeReceiptOnDevnet: (receiptPda: string) => Promise<SolanaRevokeReceiptResult>;
   verifyReceiptPdaOnDevnet: (args: {
     receiptPda: string;
     expectedIssuer?: string;
@@ -136,6 +152,10 @@ function concatBytes(...chunks: Uint8Array[]): Uint8Array {
     offset += chunk.length;
   }
   return out;
+}
+
+async function anchorDiscriminator(namespace: string): Promise<Uint8Array> {
+  return (await sha256Bytes(new TextEncoder().encode(namespace))).slice(0, 8);
 }
 
 async function sendAndConfirm(
@@ -288,7 +308,7 @@ export function useSolanaWallet(): SolanaWalletState {
       }
 
       const payloadHash = await sha256Bytes(new TextEncoder().encode(paymentSignature));
-      const discriminator = (await sha256Bytes(new TextEncoder().encode(ISSUE_RECEIPT_NAMESPACE))).slice(0, 8);
+      const discriminator = await anchorDiscriminator(ISSUE_RECEIPT_NAMESPACE);
 
       const ixData = concatBytes(discriminator, payloadHash, recipientPubkey.toBytes());
 
@@ -327,6 +347,91 @@ export function useSolanaWallet(): SolanaWalletState {
     [programId, provider]
   );
 
+  const verifyReceiptOnDevnet = useCallback(
+    async (receiptPda: string, paymentSignature: string): Promise<SolanaVerifyReceiptResult> => {
+      if (!provider) {
+        throw new Error("No Solana wallet detected.");
+      }
+
+      const verifier = provider.publicKey?.toString();
+      if (!verifier) {
+        throw new Error("Connect your wallet before verifying a receipt.");
+      }
+
+      const proofSeed = await sha256Bytes(new TextEncoder().encode(paymentSignature));
+      const proof = concatBytes(proofSeed, proofSeed);
+      const discriminator = await anchorDiscriminator("global:verify_receipt");
+
+      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+      const verifierPubkey = new PublicKey(verifier);
+      const programPubkey = new PublicKey(programId);
+      const receiptPubkey = new PublicKey(receiptPda);
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+
+      const transaction = new Transaction({
+        feePayer: verifierPubkey,
+        recentBlockhash: blockhash,
+      }).add(
+        new TransactionInstruction({
+          programId: programPubkey,
+          keys: [
+            { pubkey: receiptPubkey, isSigner: false, isWritable: true },
+            { pubkey: verifierPubkey, isSigner: true, isWritable: false },
+          ],
+          data: Buffer.from(concatBytes(discriminator, proof)),
+        })
+      );
+
+      const sent = await sendAndConfirm(provider, connection, transaction, blockhash, lastValidBlockHeight);
+      return {
+        ...sent,
+        receiptPda,
+      };
+    },
+    [programId, provider]
+  );
+
+  const revokeReceiptOnDevnet = useCallback(
+    async (receiptPda: string): Promise<SolanaRevokeReceiptResult> => {
+      if (!provider) {
+        throw new Error("No Solana wallet detected.");
+      }
+
+      const issuer = provider.publicKey?.toString();
+      if (!issuer) {
+        throw new Error("Connect your wallet before revoking a receipt.");
+      }
+
+      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+      const issuerPubkey = new PublicKey(issuer);
+      const programPubkey = new PublicKey(programId);
+      const receiptPubkey = new PublicKey(receiptPda);
+      const discriminator = await anchorDiscriminator("global:revoke_receipt");
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+
+      const transaction = new Transaction({
+        feePayer: issuerPubkey,
+        recentBlockhash: blockhash,
+      }).add(
+        new TransactionInstruction({
+          programId: programPubkey,
+          keys: [
+            { pubkey: receiptPubkey, isSigner: false, isWritable: true },
+            { pubkey: issuerPubkey, isSigner: true, isWritable: false },
+          ],
+          data: Buffer.from(discriminator),
+        })
+      );
+
+      const sent = await sendAndConfirm(provider, connection, transaction, blockhash, lastValidBlockHeight);
+      return {
+        ...sent,
+        receiptPda,
+      };
+    },
+    [programId, provider]
+  );
+
   const verifyReceiptPdaOnDevnet = useCallback(
     async ({
       receiptPda,
@@ -352,7 +457,7 @@ export function useSolanaWallet(): SolanaWalletState {
         throw new Error(`Unexpected receipt account size: ${info.data.length}`);
       }
 
-      const expectedDiscriminator = (await sha256Bytes(new TextEncoder().encode("account:Receipt"))).slice(0, 8);
+      const expectedDiscriminator = await anchorDiscriminator("account:Receipt");
       const actualDiscriminator = info.data.slice(0, 8);
       const accountDiscriminatorMatches =
         expectedDiscriminator.length === actualDiscriminator.length &&
@@ -428,6 +533,8 @@ export function useSolanaWallet(): SolanaWalletState {
     signMessage,
     sendDevnetTransfer,
     issueReceiptOnDevnet,
+    verifyReceiptOnDevnet,
+    revokeReceiptOnDevnet,
     verifyReceiptPdaOnDevnet,
   };
 }

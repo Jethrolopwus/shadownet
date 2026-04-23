@@ -6,7 +6,7 @@ export default function ReceiptsPage() {
           Receipts
         </h2>
         <p className="text-sm text-gray-600 text-center">
-          Starknet receipt queries were removed. Solana receipt views will be added here.
+         Solana receipt views will be added here.
         </p>
       </section>
     </main>

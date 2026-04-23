@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,6 +20,8 @@ export interface ReceiptNFT {
   payloadHashHex?: string;
   expectedIssuer?: string;
   expectedRecipient?: string;
+  verifiedOnChain?: boolean;
+  revokedOnChain?: boolean;
 }
 
 interface OnChainReceiptData {
@@ -105,19 +105,21 @@ export function ReceiptMinting({
         }
         stepIndex += 1;
       } else {
-        const completedReceipt: ReceiptNFT = {
-          ...receipt,
-          status: "minted",
-          tokenId: onChainReceipt.receiptPda,
-        };
-        setReceipt(completedReceipt);
-        onMintingComplete?.(completedReceipt);
+        setReceipt((prev) => {
+          const completedReceipt: ReceiptNFT = {
+            ...prev,
+            status: "minted",
+            tokenId: onChainReceipt.receiptPda,
+          };
+          onMintingComplete?.(completedReceipt);
+          return completedReceipt;
+        });
         clearInterval(interval);
       }
     }, 1200);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [amount, invoiceId, onChainReceipt.receiptPda, onMintingComplete, paymentSignature]);
 
   const formatAmount = (lamports: number) => {
     return (lamports / 1_000_000_000).toFixed(6);
@@ -297,6 +299,16 @@ export function ReceiptHistory({
                       )}`}
                     >
                       {verificationByReceiptId[receipt.id].status === "pass" ? "Verified" : "Verify Failed"}
+                    </span>
+                  )}
+                  {receipt.verifiedOnChain && (
+                    <span className="px-2 py-1 rounded-full text-xs font-medium border text-emerald-700 bg-emerald-100 border-emerald-200">
+                      On-Chain Verified
+                    </span>
+                  )}
+                  {receipt.revokedOnChain && (
+                    <span className="px-2 py-1 rounded-full text-xs font-medium border text-rose-700 bg-rose-100 border-rose-200">
+                      Revoked
                     </span>
                   )}
                 </div>

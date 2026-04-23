@@ -30,7 +30,7 @@ export default function Home() {
         </div>
         <div className="relative w-full h-full">
           <div className="aspect-[4/3] w-full h-[500px] md:h-[600px] md:w-[800px] rounded-3xl border border-white/20 shadow-2xl overflow-hidden bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-sm">
-            <Image src="/Bitcoin.jpg" alt="Blockchain Payment Privacy" fill className="object-cover opacity-90" priority />
+            <Image src="/solana.png" alt="Blockchain Payment Privacy" fill className="object-cover opacity-90" priority />
           </div>
         </div>
       </section>

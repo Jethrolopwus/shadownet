@@ -246,6 +246,17 @@ export function WalletPanel() {
           message: passed ? "Verified on-chain" : "Checks failed",
         },
       }));
+      setReceipts((prev) =>
+        prev.map((item) =>
+          item.id === receipt.id
+            ? {
+                ...item,
+                verifiedOnChain: passed ? result.decoded.verified : item.verifiedOnChain,
+                revokedOnChain: result.decoded.revoked,
+              }
+            : item
+        )
+      );
       if (passed) {
         toast.success("Receipt verified.");
       } else {
